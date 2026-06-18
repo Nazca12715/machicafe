@@ -1,5 +1,6 @@
 # machicafe
-graph TD
+```mermaid
+graph TD;
     %% Start Process
     Start([アプリ起動]) --> CheckLocation{現在地設定済み？}
     
@@ -27,3 +28,4 @@ graph TD
     ListView --> CheckDetailList{詳細を見る?}
     CheckDetailList -- No --> List
     CheckDetailList -- Yes --> Detail
+```
