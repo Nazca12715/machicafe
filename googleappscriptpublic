@@ -1,0 +1,50 @@
+function onFormSubmit(e) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const lastCol = sheet.getLastColumn();
+  
+  // Get the row number where Google Forms just dumped the new data
+  const newRowIndex = e.range.getRow();
+  
+  // 1. Read headers to find the column index
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  
+  // CHANGE THIS to match your exact column header (e.g., "団体名" or "Organization Name")
+  const keyColumnName = "メールアドレス (KEY)"; 
+  const keyColumnIndex = headers.indexOf(keyColumnName);
+  
+  if (keyColumnIndex === -1) {
+    console.error("Error: メールアドレス (KEY) Key column not found.");
+    return;
+  }
+  
+  // 2. Read the new row DIRECTLY from the sheet (this prevents dimension mismatch errors)
+  const newRowValues = sheet.getRange(newRowIndex, 1, 1, lastCol).getValues()[0];
+  
+  // Convert to string and trim spaces so "Name " matches "Name"
+  const submittedEmail = String(newRowValues[keyColumnIndex]).trim();
+  
+  // 3. Read ALL data to check for duplicates
+  const allData = sheet.getDataRange().getValues();
+  
+  // 4. Loop through existing rows (skip headers at index 0, stop before the newly added row)
+  for (let i = 1; i < newRowIndex - 1; i++) {
+    const currentEmail = String(allData[i][keyColumnIndex]).trim();
+    
+    // If a match is found
+    if (currentEmail === submittedEmail) {
+      const targetRowIndex = i + 1; // Convert array index to Sheet row number
+      
+      // Overwrite the existing row with the new data
+      sheet.getRange(targetRowIndex, 1, 1, lastCol).setValues([newRowValues]);
+      
+      // Delete the duplicate row at the bottom
+      sheet.deleteRow(newRowIndex);
+      
+      console.log("Updated existing record: " + submittedEmail);
+      return; // Stop the script
+    }
+  }
+  
+  console.log("Inserted new record: " + submittedEmail);
+}
+
